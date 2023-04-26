@@ -1,3 +1,5 @@
+// Package bip39 Kudos to original author of this package
+// Visit & give a star to: https://github.com/tyler-smith/go-bip39/blob/master/bip39.go
 package bip39
 
 import (

@@ -2,6 +2,8 @@
 //
 // The official BIP39 spec can be found at
 // https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
+// Kudos to original author of this package
+// Visit & give a star to: https://github.com/tyler-smith/go-bip39/blob/master/bip39.go
 package bip39
 
 import (

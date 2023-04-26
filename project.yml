@@ -1,7 +1,7 @@
 packages:
   - name: lambda
     actions:
-      - name: 'cmpl-mnc'
+      - name: 'mnemonix'
         runtime: 'go:default'
         limits:
           timeout: 1000
