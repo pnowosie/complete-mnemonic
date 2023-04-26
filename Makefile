@@ -9,3 +9,6 @@ LEN := 12
 run:
 	# single word invocation is as easy as
 	doctl sls fn invoke lambda/mnemonix -p phrase:${WORD},length:${LEN}
+
+test:
+	@cd src/packages/lambda/mnemonix && gotestsum -f testname
