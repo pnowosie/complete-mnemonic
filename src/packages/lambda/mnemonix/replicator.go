@@ -16,8 +16,11 @@ func Repeat(phrase string, length int) (string, error) {
 		return "", err
 	}
 
-	// TODO: more is comming soon
-	return strings.TrimSpace(strings.Repeat(words[0]+" ", length)), nil
+	dst := make([]string, length)
+	for i := 0; i < length; i += len(words) {
+		copy(dst[i:], words)
+	}
+	return strings.Join(dst, " "), nil
 }
 
 func hasCorrectWordsLength(length int) error {
@@ -40,4 +43,3 @@ func toWordList(phrase string) ([]string, error) {
 	}
 	return words, nil
 }
-

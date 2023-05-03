@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestSingleWordCompletion(t *testing.T) {
+func TestPhraseRepetitionCompletion(t *testing.T) {
 	tests := map[string]struct {
 		req              *Request
 		expectedResponse *Response
@@ -27,6 +27,25 @@ func TestSingleWordCompletion(t *testing.T) {
 			expectedResponse: &Response{
 				StatusCode: 200,
 				Body:       []string{"yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "year"},
+			},
+		},
+		"angry-bird-24-success": {
+			req: &Request{
+				Phrase: "angry bird",
+				Length: 24,
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body:       []string{"angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "advance"},
+			},
+		},
+		"three-short-12-success": {
+			req: &Request{
+				Phrase: "air age act",
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body:       []string{"air", "age", "act", "air", "age", "act", "air", "age", "act", "air", "age", "addict"},
 			},
 		},
 		"word out of word list": {

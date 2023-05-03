@@ -21,10 +21,8 @@ func Main(in Request) (*Response, error) {
 		}, nil
 	}
 
-	en, err := bip39.EntropyFromMnemonic(mn)
-	if err != nil {
-		mn, _ = bip39.NewMnemonic(en)
-	}
+	en, _ := bip39.EntropyFromMnemonic(mn)
+	mn, _ = bip39.NewMnemonic(en)
 
 	words := strings.Fields(mn)
 	return &Response{
