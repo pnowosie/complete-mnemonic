@@ -7,8 +7,8 @@ test: ## runs a test of the lambda function
 
 WORD := abandon
 LEN := 12
-run: ## sample invocation with doctl CLI, params: WORD=abandon LEN=12
-	# single word invocation is as easy as
+run: ## sample invocation with doctl CLI, params: WORD=abandon LEN=12 [15,18,21,24] (words delimited by _)
+	# invocation is as easy as `make run WORD=fresh_air LEN=12`
 	doctl sls fn invoke lambda/mnemonix -p phrase:${WORD},length:${LEN}
 
 deploy: ## deploy the lambda function
@@ -17,6 +17,9 @@ deploy: ## deploy the lambda function
 
 show-words: ## show the available english words of the BIP-39 wordlist
 	@less +25 src/packages/lambda/mnemonix/bip39/english.go
+
+single: ## creates a single word mnemonic from the BIP-39 samples, params: WORD=abandon LEN=12
+	@env LEN=${LEN} WORD=${WORD} bash samples/make-single.sh
 
 .PHONY: help
 help:
