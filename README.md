@@ -4,6 +4,25 @@ This little fun function helps you to create valid BIP-39 menemonic phrases that
 
 :warning: **Never use such generated wallets to store real money!**
 
+## How to run
+
+- Clone this repo into your file system
+- In [DigitOcean web console](https://cloud.digitalocean.com/functions) create a function namespace `lambda`
+- Make sure you have `doctl` installed and configured
+- **Deploy:** Run command to deploy the function
+    ```bash
+    make deploy
+    ```
+- **Run:**
+    ```bash
+    make run WORD=alien_alert | jq -r '.body.mnemonic'
+    # echo: alien alert alien alert alien alert alien alert alien alert alien alley
+    ```
+- **Test:** If you have Go installed you can run tests with command
+    ```bash
+    make test
+    ```
+
 ## Phrase length to entropy table
 
 | words length | entropy bits | checksum bits |

@@ -17,7 +17,7 @@ func Main(in Request) (*Response, error) {
 	if err != nil {
 		return &Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       []string{err.Error()},
+			Body:       ResponseBody{Error: err.Error()},
 		}, nil
 	}
 
@@ -27,6 +27,6 @@ func Main(in Request) (*Response, error) {
 	words := strings.Fields(mn)
 	return &Response{
 		StatusCode: http.StatusOK,
-		Body:       words,
+		Body:       ResponseBody{Mnemonic: strings.Join(words, " "), Length: len(words)},
 	}, nil
 }

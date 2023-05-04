@@ -8,8 +8,7 @@ test: ## runs a test of the lambda function
 WORD := abandon
 LEN := 12
 run: ## sample invocation with doctl CLI, params: WORD=abandon LEN=12 [15,18,21,24] (words delimited by _)
-	# invocation is as easy as `make run WORD=fresh_air LEN=12`
-	doctl sls fn invoke lambda/mnemonix -p phrase:${WORD},length:${LEN}
+	@doctl sls fn invoke lambda/mnemonix -p phrase:${WORD},length:${LEN}
 
 deploy: ## deploy the lambda function
 	doctl sls connect lambda

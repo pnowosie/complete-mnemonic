@@ -19,7 +19,13 @@ type Request struct {
 type Response struct {
 	StatusCode int               `json:"statusCode,omitempty"`
 	Headers    map[string]string `json:"headers,omitempty"`
-	Body       []string          `json:"body,omitempty"`
+	Body       ResponseBody      `json:"body,omitempty"`
+}
+
+type ResponseBody struct {
+	Mnemonic string `json:"mnemonic"`
+	Length   int    `json:"length"`
+	Error    string `json:"error,omitempty"`
 }
 
 // UnmarshalJSON custom method of UnMarshaller interface for handling non-string types

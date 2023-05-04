@@ -16,7 +16,10 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			},
 			expectedResponse: &Response{
 				StatusCode: 200,
-				Body:       []string{"abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "about"},
+				Body: ResponseBody{
+					Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+					Length:   12,
+				},
 			},
 		},
 		"yellow-15-success": {
@@ -26,7 +29,11 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			},
 			expectedResponse: &Response{
 				StatusCode: 200,
-				Body:       []string{"yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "year"},
+
+				Body: ResponseBody{
+					Mnemonic: "yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow year",
+					Length:   15,
+				},
 			},
 		},
 		"angry-bird-24-success": {
@@ -36,7 +43,10 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			},
 			expectedResponse: &Response{
 				StatusCode: 200,
-				Body:       []string{"angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "advance"},
+				Body: ResponseBody{
+					Mnemonic: "angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry advance",
+					Length:   24,
+				},
 			},
 		},
 		"non-whitespace-word-separator-success": {
@@ -46,7 +56,10 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			},
 			expectedResponse: &Response{
 				StatusCode: 200,
-				Body:       []string{"angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "birth"},
+				Body: ResponseBody{
+					Mnemonic: "angry bird angry bird angry bird angry bird angry bird angry birth",
+					Length:   12,
+				},
 			},
 		},
 		"three-short-12-success": {
@@ -55,16 +68,10 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			},
 			expectedResponse: &Response{
 				StatusCode: 200,
-				Body:       []string{"air", "age", "act", "air", "age", "act", "air", "age", "act", "air", "age", "addict"},
-			},
-		},
-		"overwrite-default-length-when-more-words-15": {
-			req: &Request{
-				Phrase: "air age act air age act air age act air age act fox",
-			},
-			expectedResponse: &Response{
-				StatusCode: 200,
-				Body:       []string{"air", "age", "act", "air", "age", "act", "air", "age", "act", "air", "age", "act", "fox", "air", "airport"},
+				Body: ResponseBody{
+					Mnemonic: "air age act air age act air age act air age addict",
+					Length:   12,
+				},
 			},
 		},
 		"last word affects checksum": {
@@ -73,7 +80,22 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			},
 			expectedResponse: &Response{
 				StatusCode: 200,
-				Body:       []string{"abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "wrap"},
+				Body: ResponseBody{
+					Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon wrap",
+					Length:   12,
+				},
+			},
+		},
+		"overwrite-default-length-when-more-words-15": {
+			req: &Request{
+				Phrase: "air age act air age act air age act air age act fox",
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body: ResponseBody{
+					Mnemonic: "air age act air age act air age act air age act fox air airport",
+					Length:   15,
+				},
 			},
 		},
 		"overwrite-default-length-when-more-words-18": {
@@ -82,7 +104,10 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			},
 			expectedResponse: &Response{
 				StatusCode: 200,
-				Body:       []string{"air", "age", "act", "air", "age", "act", "air", "age", "act", "air", "age", "act", "blue", "fox", "blue", "fox", "green", "window"},
+				Body: ResponseBody{
+					Mnemonic: "air age act air age act air age act air age act blue fox blue fox green window",
+					Length:   18,
+				},
 			},
 		},
 		"word out of word list": {
@@ -91,7 +116,9 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			},
 			expectedResponse: &Response{
 				StatusCode: 400,
-				Body:       []string{"word 'not-here' at position 0 is not in WordList"},
+				Body: ResponseBody{
+					Error: "word 'not-here' at position 0 is not in WordList",
+				},
 			},
 		},
 		"incorrect length": {
@@ -101,7 +128,9 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			},
 			expectedResponse: &Response{
 				StatusCode: 400,
-				Body:       []string{"invalid length of '13', accepted values: 12, 15, 18, 21, 24"},
+				Body: ResponseBody{
+					Error: "invalid length of '13', accepted values: 12, 15, 18, 21, 24",
+				},
 			},
 		},
 	}
