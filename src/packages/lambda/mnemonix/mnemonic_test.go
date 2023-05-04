@@ -39,6 +39,16 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				Body:       []string{"angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "advance"},
 			},
 		},
+		"non-whitespace-word-separator-success": {
+			req: &Request{
+				Phrase: "angry_bird",
+				Length: 12,
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body:       []string{"angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "bird", "angry", "birth"},
+			},
+		},
 		"three-short-12-success": {
 			req: &Request{
 				Phrase: "air age act",
@@ -46,6 +56,33 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			expectedResponse: &Response{
 				StatusCode: 200,
 				Body:       []string{"air", "age", "act", "air", "age", "act", "air", "age", "act", "air", "age", "addict"},
+			},
+		},
+		"overwrite-default-length-when-more-words-15": {
+			req: &Request{
+				Phrase: "air age act air age act air age act air age act fox",
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body:       []string{"air", "age", "act", "air", "age", "act", "air", "age", "act", "air", "age", "act", "fox", "air", "airport"},
+			},
+		},
+		"last word affects checksum": {
+			req: &Request{
+				Phrase: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon zoo",
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body:       []string{"abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "wrap"},
+			},
+		},
+		"overwrite-default-length-when-more-words-18": {
+			req: &Request{
+				Phrase: "air age act air age act air age act air age act blue fox blue fox green zebra",
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body:       []string{"air", "age", "act", "air", "age", "act", "air", "age", "act", "air", "age", "act", "blue", "fox", "blue", "fox", "green", "window"},
 			},
 		},
 		"word out of word list": {
