@@ -1,0 +1,13 @@
+packages:
+  - name: lambda
+    actions:
+      - name: 'mnemonix'
+        runtime: 'go:default'
+        limits:
+          timeout: 1000
+          memory: 128
+      - name: 'wallet'
+        runtime: 'go:default'
+        limits:
+          timeout: 3500
+          memory: 128

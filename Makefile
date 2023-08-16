@@ -4,6 +4,7 @@
 .PHONY: test run deploy
 test: ## runs a test of the lambda function
 	@cd src/packages/lambda/mnemonix && gotestsum -f testname
+	@cd src/packages/lambda/hd && gotestsum -f testname
 
 WORD := abandon
 LEN := 12
