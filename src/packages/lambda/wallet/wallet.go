@@ -26,8 +26,9 @@ func Main(in Request) (*Response, error) {
 	}
 
 	if in.Mnemonic != "" {
-		parsedMnemonic, err := parseMnemonic(in.Mnemonic)
+		parsedMnemonic, length, err := parseMnemonic(in.Mnemonic)
 		if err != nil {
+			fmt.Println("error in parsing mnemonic", quote(in.Mnemonic), "error", err)
 			return &Response{
 				StatusCode: http.StatusBadRequest,
 				Body: ResponseBody{
@@ -35,12 +36,13 @@ func Main(in Request) (*Response, error) {
 				},
 			}, nil
 		}
-		in.Mnemonic = parsedMnemonic
+		in.Mnemonic, in.Length = parsedMnemonic, length
 	}
 
 	if in.Mnemonic == "" && in.Phrase != "" {
 		mnemonic, err := constructFromPhrase(in.Phrase, in.Length)
 		if err != nil {
+			fmt.Println("error constructing mnemonic from phrase", "phrase", quote(in.Phrase), "length", in.Length, "error", err)
 			return &Response{
 				StatusCode: http.StatusInternalServerError,
 				Body: ResponseBody{
@@ -52,10 +54,11 @@ func Main(in Request) (*Response, error) {
 	}
 
 	if !bip39.IsMnemonicValid(in.Mnemonic) {
+		fmt.Println("given mnemonic is not valid", "phrase", quote(in.Phrase), "length", in.Length, "mnemonic", quote(in.Mnemonic))
 		return &Response{
 			StatusCode: http.StatusBadRequest,
 			Body: ResponseBody{
-				Error: "invalid mnemonic",
+				Error: "Invalid mnemonic. Don't you mean 'phrase' instead of 'mnemonic'?",
 			},
 		}, nil
 	}
@@ -81,8 +84,8 @@ func Main(in Request) (*Response, error) {
 		Body: ResponseBody{
 			Wallet: WalletBody{
 				Mnemonic:   in.Mnemonic,
-				Derivation: DefaultDerivation,
-				Length:     DefaultPhraseLength,
+				Derivation: in.Derivation,
+				Length:     in.Length,
 			},
 			Accounts: addresses,
 		},
@@ -128,6 +131,7 @@ func generateAddresses(mnemonic string, derivation string, count int) ([]string,
 	}
 
 	addresses := make([]string, count)
+	fmt.Println("Generating addresses", "count", count)
 	for i := 0; i < count; i++ {
 		prePath := fmt.Sprintf("%s%d", derivation, i)
 		path, err := accounts.ParseDerivationPath(prePath)
@@ -144,10 +148,10 @@ func generateAddresses(mnemonic string, derivation string, count int) ([]string,
 	return addresses, nil
 }
 
-func parseMnemonic(mnemonic string) (string, error) {
+func parseMnemonic(mnemonic string) (string, int, error) {
 	words, err := toWordList(mnemonic)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
-	return strings.Join(words, " "), nil
+	return strings.Join(words, " "), len(words), nil
 }

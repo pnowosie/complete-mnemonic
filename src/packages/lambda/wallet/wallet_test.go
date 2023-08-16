@@ -175,6 +175,43 @@ func TestKeyDerivation(t *testing.T) {
 	}
 }
 
+func TestInvalidInputsErrors(t *testing.T) {
+	tests := map[string]struct {
+		req              *Request
+		expectedCode int
+		expectedError string
+	}{
+		"mnemonic instead of phrase": {
+			req: &Request{
+				Mnemonic: "fox_six_skill",
+				Length: 18,
+			},
+			expectedCode: 400,
+			expectedError: "Invalid mnemonic. Don't you mean 'phrase' instead of 'mnemonic'?",
+		},
+	}
+
+	for name, test := range tests {
+		// set defaults
+		req := test.req
+		req.Derivation = DefaultDerivation
+		if req.Length == 0 {
+			req.Length = DefaultPhraseLength
+		}
+		if req.Count == 0 {
+			req.Count = DefaultAccountCount
+		}
+		t.Run(name, func(t *testing.T) {
+			resp, err := Main(*test.req)
+			if err != nil {
+				t.Fatal("unexpected error, which should be reported by response")
+			}
+			assert.Equal(t, test.expectedCode, resp.StatusCode)
+			assert.Equal(t, test.expectedError, resp.Body.Error)
+		})
+	}
+}
+
 func TestNewMnemonicGeneratedAtRandom(t *testing.T) {
 	resp, err := Main(Request{Count: 3, Derivation: DefaultDerivation, Length: DefaultPhraseLength})
 	if err != nil {

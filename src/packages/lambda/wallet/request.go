@@ -75,7 +75,7 @@ func (req *Request) UnmarshalJSON(data []byte) error {
 
 	// Count
 	var count int64
-	if rawMsg, ok := objMap["length"]; ok {
+	if rawMsg, ok := objMap["count"]; ok {
 		if err := json.Unmarshal(*rawMsg, &count); err != nil {
 			// if failed, unmarshal to string
 			var countStr string

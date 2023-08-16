@@ -49,3 +49,7 @@ func toWordList(phrase string) ([]string, error) {
 	}
 	return words, nil
 }
+
+func quote(valueWithSpaces string) string {
+	return fmt.Sprintf("'%s'", valueWithSpaces)
+}
