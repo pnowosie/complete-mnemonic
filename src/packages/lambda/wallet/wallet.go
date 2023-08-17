@@ -131,7 +131,7 @@ func generateAddresses(mnemonic string, derivation string, count int) ([]string,
 	}
 
 	addresses := make([]string, count)
-	fmt.Println("Generating addresses", "count", count)
+	//fmt.Println("Generating addresses:", "count", count)
 	for i := 0; i < count; i++ {
 		prePath := fmt.Sprintf("%s%d", derivation, i)
 		path, err := accounts.ParseDerivationPath(prePath)
