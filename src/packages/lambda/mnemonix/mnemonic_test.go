@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/stretchr/testify/assert"
+	"math"
 	"testing"
 )
 
@@ -18,6 +19,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+					Ends:     "about attract burger cool disagree exhaust furnace huge moment own question sand solid tent urge wrap",
 					Length:   12,
 				},
 			},
@@ -32,6 +34,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 
 				Body: ResponseBody{
 					Mnemonic: "yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow year",
+					Ends:     "account autumn buffalo clown dirt excite found hurdle minimum ordinary protect rubber snow switch urge year",
 					Length:   15,
 				},
 			},
@@ -45,6 +48,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry advance",
+					Ends:     "brisk castle faint guilt life pluck task update",
 					Length:   24,
 				},
 			},
@@ -58,6 +62,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "angry bird angry bird angry bird angry bird angry bird angry birth",
+					Ends:     "absent audit burden company distance exist garbage husband modify panel quiz safe sort tattoo urban wrist",
 					Length:   12,
 				},
 			},
@@ -70,6 +75,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age addict",
+					Ends:     "ability asthma burden convince dinosaur evoke game humor mixed paper quiz save soon thank unlock wrong",
 					Length:   12,
 				},
 			},
@@ -82,6 +88,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon wrap",
+					Ends:     "about attract burger cool disagree exhaust furnace huge moment own question sand solid tent urge wrap",
 					Length:   12,
 				},
 			},
@@ -94,6 +101,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age act fox air airport",
+					Ends:     "acid auto bundle concert discover era garage hover mobile owner quality rural snap tattoo urge wrist",
 					Length:   15,
 				},
 			},
@@ -106,7 +114,21 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age act blue fox blue fox green window",
+					Ends:     "among asset brand club deliver equal flight habit mixture panther praise roof sorry team tuna winner",
 					Length:   18,
+				},
+			},
+		},
+		"another-three-12-success": {
+			req: &Request{
+				Phrase: "quick brown fox",
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body: ResponseBody{
+					Mnemonic: "quick brown fox quick brown fox quick brown fox quick brown fox",
+					Ends:     "accuse attack cable confirm discover excess funny hurry moment oyster question safe solution tent urge wreck",
+					Length:   12,
 				},
 			},
 		},
@@ -144,4 +166,98 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 			assert.Equal(t, test.expectedResponse, resp)
 		})
 	}
+}
+
+func TestEntropyInformations(t *testing.T) {
+	const (
+		wordEntropyBitLength = 11
+	)
+
+	tests := map[string]struct {
+		wordsLength                int
+		entropyByteLength          int
+		entropyBitLength           int
+		checksumBitLength          int
+		lastWordOfEntropyBitLength int
+		numberOfCorrectLastWords   int
+		someOfCorrectLastBytes     []byte
+	}{
+		"mnemonic of 12": {
+			wordsLength:                12,
+			entropyByteLength:          16,
+			entropyBitLength:           128,
+			checksumBitLength:          4,
+			lastWordOfEntropyBitLength: 7,
+			numberOfCorrectLastWords:   128,
+			someOfCorrectLastBytes:     []byte{0x0, 0x7, 0xf, 0x17, 0x1f, 0x27, 0x2f, 0x37, 0x47, 0x4f, 0x57, 0x5f, 0x67, 0x6f, 0x77, 0x7f},
+		},
+		"mnemonic of 15": {
+			wordsLength:                15,
+			entropyByteLength:          20,
+			entropyBitLength:           160,
+			checksumBitLength:          5,
+			lastWordOfEntropyBitLength: 6,
+			numberOfCorrectLastWords:   64,
+			someOfCorrectLastBytes:     []byte{0x0, 0x3, 0x7, 0xb, 0xf, 0x13, 0x17, 0x1b, 0x23, 0x27, 0x2b, 0x2f, 0x33, 0x37, 0x3b, 0x3f},
+		},
+		"mnemonic of 18": {
+			wordsLength:                18,
+			entropyByteLength:          24,
+			entropyBitLength:           192,
+			checksumBitLength:          6,
+			lastWordOfEntropyBitLength: 5,
+			numberOfCorrectLastWords:   32,
+			someOfCorrectLastBytes:     []byte{0x0, 0x1, 0x3, 0x5, 0x7, 0x9, 0xb, 0xd, 0x11, 0x13, 0x15, 0x17, 0x19, 0x1b, 0x1d, 0x1f},
+		},
+		"mnemonic of 21": {
+			wordsLength:                21,
+			entropyByteLength:          28,
+			entropyBitLength:           224,
+			checksumBitLength:          7,
+			lastWordOfEntropyBitLength: 4,
+			numberOfCorrectLastWords:   16,
+			someOfCorrectLastBytes:     []byte{0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf},
+		},
+		"mnemonic of 24": {
+			wordsLength:                24,
+			entropyByteLength:          32,
+			entropyBitLength:           256,
+			checksumBitLength:          8,
+			lastWordOfEntropyBitLength: 3,
+			numberOfCorrectLastWords:   8,
+			someOfCorrectLastBytes:     []byte{0, 1, 2, 3, 4, 5, 6, 7},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			var (
+				entropyByteLength          = test.wordsLength / 3 * 4
+				entropyBitLength           = entropyByteLength * 8
+				checksumBitLength          = entropyBitLength / 32
+				lastWordOfEntropyBitLength = wordEntropyBitLength - checksumBitLength
+				numberOfCorrectLastWords   = int(math.Pow(2, float64(lastWordOfEntropyBitLength)))
+			)
+
+			assert.Equal(t, test.entropyByteLength, entropyByteLength)
+			assert.Equal(t, test.entropyBitLength, entropyBitLength)
+			assert.Equal(t, test.checksumBitLength, checksumBitLength)
+			assert.Equal(t, test.lastWordOfEntropyBitLength, lastWordOfEntropyBitLength)
+			assert.Equal(t, test.numberOfCorrectLastWords, numberOfCorrectLastWords)
+
+			// lets generate some of the correct last bytes
+			correctBytes := PossibleLastBytes(entropyByteLength)
+			assert.Equal(t, test.someOfCorrectLastBytes, correctBytes)
+
+			end := uint8(test.numberOfCorrectLastWords - 1)
+			actualWords := len(correctBytes)
+			assert.Equal(t, byte(0), test.someOfCorrectLastBytes[0])
+			assert.Equal(t, end, test.someOfCorrectLastBytes[actualWords-1])
+			assert.Equal(t, end, correctBytes[actualWords-1])
+			span01 := test.someOfCorrectLastBytes[2] - test.someOfCorrectLastBytes[1]
+			span7f := test.someOfCorrectLastBytes[actualWords-1] - test.someOfCorrectLastBytes[actualWords-2]
+			assert.Equal(t, span01, span7f)
+		})
+	}
+
 }

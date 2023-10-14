@@ -25,6 +25,7 @@ type Response struct {
 type ResponseBody struct {
 	Mnemonic string `json:"mnemonic"`
 	Length   int    `json:"length"`
+	Ends     string `json:"ends,omitempty"`
 	Error    string `json:"error,omitempty"`
 }
 

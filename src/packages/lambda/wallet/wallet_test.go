@@ -155,6 +155,132 @@ func TestKeyDerivation(t *testing.T) {
 				},
 			},
 		},
+		"mnemonix generated QBF-1": {
+			req: &Request{
+				Phrase: "quick brown fox attack",
+				Count:  1,
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body: ResponseBody{
+					Wallet: WalletBody{
+						Derivation: DefaultDerivation,
+						Length:     DefaultPhraseLength,
+						Mnemonic:   "quick brown fox quick brown fox quick brown fox quick brown attack",
+					},
+					Accounts: []AccountBody{
+						{
+							Address: "0xC81E455a82d2029E2ecDdFaA6365B15CD69589a5",
+						},
+					},
+				},
+			},
+		},
+		"mnemonix generated QBF-2": {
+			req: &Request{
+				Phrase: "quick_brown_fox_cable",
+				Count:  1,
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body: ResponseBody{
+					Wallet: WalletBody{
+						Derivation: DefaultDerivation,
+						Length:     DefaultPhraseLength,
+						Mnemonic:   "quick brown fox quick brown fox quick brown fox quick brown cable",
+					},
+					Accounts: []AccountBody{
+						{
+							Address: "0x523063b46e87d419c4b30402170C3ED91dCefD6A",
+						},
+					},
+				},
+			},
+		},
+		"mnemonix generated QBF-3": {
+			req: &Request{
+				Phrase: "quick brown fox oyster",
+				Count:  1,
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body: ResponseBody{
+					Wallet: WalletBody{
+						Derivation: DefaultDerivation,
+						Length:     DefaultPhraseLength,
+						Mnemonic:   "quick brown fox quick brown fox quick brown fox quick brown oyster",
+					},
+					Accounts: []AccountBody{
+						{
+							Address: "0x588D620acE82cC864976bD3Cfb44Fdb33DCe0ED4",
+						},
+					},
+				},
+			},
+		},
+		"mnemonix generated BFQ-1": {
+			req: &Request{
+				Phrase: "brown fox quick wrong",
+				Count:  1,
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body: ResponseBody{
+					Wallet: WalletBody{
+						Derivation: DefaultDerivation,
+						Length:     DefaultPhraseLength,
+						Mnemonic:   "brown fox quick brown fox quick brown fox quick brown fox wrong",
+					},
+					Accounts: []AccountBody{
+						{
+							Address: "0xa601FAb390f54318642F2e5f9fe4584F7502A769",
+						},
+					},
+				},
+			},
+		},
+		"mnemonix generated BFQ-2": {
+			req: &Request{
+				Phrase: "brown fox quick garage",
+				Count:  1,
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body: ResponseBody{
+					Wallet: WalletBody{
+						Derivation: DefaultDerivation,
+						Length:     DefaultPhraseLength,
+						Mnemonic:   "brown fox quick brown fox quick brown fox quick brown fox garage",
+					},
+					Accounts: []AccountBody{
+						{
+							Address: "0x5cD325FeeefaBc5f91C856c71d46a923F9235cE4",
+						},
+					},
+				},
+			},
+		},
+		"mnemonix generated BFQ-3": {
+			req: &Request{
+				Phrase: "brown_fox_quick_bullet",
+				Count:  1,
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body: ResponseBody{
+					Wallet: WalletBody{
+						Derivation: DefaultDerivation,
+						Length:     DefaultPhraseLength,
+						Mnemonic:   "brown fox quick brown fox quick brown fox quick brown fox bullet",
+					},
+					Accounts: []AccountBody{
+						{
+							Address: "0x11aaa3bfdc8c6669002fb74ABbc33adf4b7cfb92",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for name, test := range tests {
@@ -177,16 +303,16 @@ func TestKeyDerivation(t *testing.T) {
 
 func TestInvalidInputsErrors(t *testing.T) {
 	tests := map[string]struct {
-		req              *Request
-		expectedCode int
+		req           *Request
+		expectedCode  int
 		expectedError string
 	}{
 		"mnemonic instead of phrase": {
 			req: &Request{
 				Mnemonic: "fox_six_skill",
-				Length: 18,
+				Length:   18,
 			},
-			expectedCode: 400,
+			expectedCode:  400,
 			expectedError: "Invalid mnemonic. Don't you mean 'phrase' instead of 'mnemonic'?",
 		},
 	}

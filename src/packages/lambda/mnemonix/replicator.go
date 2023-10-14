@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/pnowosie/complete-mnemonic/bip39"
 )
+
+const MaxCorrectWords = 16
 
 func Repeat(phrase string, length int) (string, error) {
 	if err := hasCorrectWordsLength(length); err != nil {
@@ -26,6 +29,41 @@ func Repeat(phrase string, length int) (string, error) {
 		copy(dst[i:], words)
 	}
 	return strings.Join(dst, " "), nil
+}
+
+func PossibleLastBytes(entropyByteLength int) []byte {
+	const (
+		wordEntropyBitLength = 11
+	)
+
+	var (
+		entropyBitLength           = entropyByteLength * 8
+		checksumBitLength          = entropyBitLength / 32
+		lastWordOfEntropyBitLength = wordEntropyBitLength - checksumBitLength
+		numberOfCorrectLastWords   = int(math.Pow(2, float64(lastWordOfEntropyBitLength)))
+	)
+
+	// lets generate some of the correct last bytes
+	actualWords := MaxCorrectWords
+	if numberOfCorrectLastWords < MaxCorrectWords {
+		actualWords = numberOfCorrectLastWords
+	}
+	correctBytes := make([]uint8, 1, actualWords)
+
+	increment := uint8(numberOfCorrectLastWords / MaxCorrectWords)
+	next := increment - 1
+	if increment <= 1 {
+		increment, next = 1, 1
+	}
+	for i := 1; i < actualWords; i++ {
+		correctBytes = append(correctBytes, next)
+		next += increment
+		if increment > 1 && i == actualWords/2-1 {
+			next += increment
+		}
+	}
+
+	return correctBytes
 }
 
 func hasCorrectWordsLength(length int) error {
