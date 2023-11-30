@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ func TestRequestUnMarshall(t *testing.T) {
 			},
 		},
 		"word with a length": {
-			json:    `{"length": 15, "phrase": "yellow"}`,
+			json:    `{"length": "15", "phrase": "yellow"}`,
 			success: true,
 			expectedRequest: &Request{
 				Phrase: "yellow",
@@ -33,7 +34,7 @@ func TestRequestUnMarshall(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			var req Request
-			err := req.UnmarshalJSON([]byte(test.json))
+			err := json.Unmarshal([]byte(test.json), &req)
 			if test.success && err != nil {
 				t.Errorf("expected success, got error: %v", err)
 			}
@@ -44,6 +45,7 @@ func TestRequestUnMarshall(t *testing.T) {
 				return
 			}
 
+			req.AssumeDefaults()
 			assert.Equal(t, test.expectedRequest, &req)
 		})
 

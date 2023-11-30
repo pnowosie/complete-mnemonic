@@ -8,10 +8,7 @@ import (
 )
 
 func Main(in Request) (*Response, error) {
-	if in.Length == 0 {
-		// params of type int cannot be passed via CLI
-		in.Length = 12
-	}
+	in.AssumeDefaults()
 
 	mn, err := Repeat(in.Phrase, in.Length)
 	if err != nil {

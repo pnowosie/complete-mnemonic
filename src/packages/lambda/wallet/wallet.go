@@ -12,6 +12,7 @@ import (
 )
 
 func Main(in Request) (*Response, error) {
+	in.AssumeDefaults()
 	if in.Mnemonic == "" && in.Phrase == "" {
 		mnemonic, err := randomMnemonic(in)
 		if err != nil {
@@ -63,7 +64,7 @@ func Main(in Request) (*Response, error) {
 		}, nil
 	}
 
-	addrs, err := generateAddresses(in.Mnemonic, in.Derivation, in.Count)
+	genAccounts, err := generateAddresses(in.Mnemonic, in.Password, in.Derivation, in.Count, in.RevealPrivate)
 	if err != nil {
 		return &Response{
 			StatusCode: http.StatusInternalServerError,
@@ -71,12 +72,6 @@ func Main(in Request) (*Response, error) {
 				Error: err.Error(),
 			},
 		}, nil
-	}
-	addresses := make([]AccountBody, len(addrs))
-	for i, addr := range addrs {
-		addresses[i] = AccountBody{
-			Address: addr,
-		}
 	}
 
 	return &Response{
@@ -87,7 +82,7 @@ func Main(in Request) (*Response, error) {
 				Derivation: in.Derivation,
 				Length:     in.Length,
 			},
-			Accounts: addresses,
+			Accounts: genAccounts,
 		},
 	}, nil
 }
@@ -124,14 +119,14 @@ func constructFromPhrase(phrase string, length int) (string, error) {
 	return strings.Join(mnemonicWords, " "), nil
 }
 
-func generateAddresses(mnemonic string, derivation string, count int) ([]string, error) {
-	wallet, err := hd.NewFromMnemonic(mnemonic)
+func generateAddresses(mnemonic, password, derivation string, count int, includePrivate bool) ([]AccountBody, error) {
+	wallet, err := hd.NewFromMnemonic(mnemonic, password)
 	if err != nil {
 		return nil, err
 	}
 
-	addresses := make([]string, count)
-	//fmt.Println("Generating addresses:", "count", count)
+	accs := make([]AccountBody, count)
+	//fmt.Println("Generating accs:", "count", count)
 	for i := 0; i < count; i++ {
 		prePath := fmt.Sprintf("%s%d", derivation, i)
 		path, err := accounts.ParseDerivationPath(prePath)
@@ -142,10 +137,14 @@ func generateAddresses(mnemonic string, derivation string, count int) ([]string,
 		if err != nil {
 			return nil, err
 		}
-		addresses[i] = account.Address.Hex()
+		accs[i].Address = account.Address.Hex()
+		if includePrivate {
+			priv, _ := wallet.PrivateKeyHex(account)
+			accs[i].PrivateKey = priv
+		}
 	}
 
-	return addresses, nil
+	return accs, nil
 }
 
 func parseMnemonic(mnemonic string) (string, int, error) {

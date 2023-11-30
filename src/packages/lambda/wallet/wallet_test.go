@@ -155,6 +155,34 @@ func TestKeyDerivation(t *testing.T) {
 				},
 			},
 		},
+		"test junk phrase with password": {
+			req: &Request{
+				Phrase:   "test junk",
+				Password: "password",
+				Count:    3,
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body: ResponseBody{
+					Wallet: WalletBody{
+						Derivation: DefaultDerivation,
+						Length:     DefaultPhraseLength,
+						Mnemonic:   "test test test test test test test test test test test junk",
+					},
+					Accounts: []AccountBody{
+						{
+							Address: "0xfaFfA9053ac6c6315Aa7806d1336F10F9b280Ee9",
+						},
+						{
+							Address: "0xb1a3B55051E04d44Ce457A6A479c999557521921",
+						},
+						{
+							Address: "0x64ffA20464c6dF3b23f1540327578eBf10C23785",
+						},
+					},
+				},
+			},
+		},
 		"mnemonix generated QBF-1": {
 			req: &Request{
 				Phrase: "quick brown fox attack",
@@ -281,6 +309,33 @@ func TestKeyDerivation(t *testing.T) {
 				},
 			},
 		},
+		"test junk phrase with private keys revealed": {
+			req: &Request{
+				Phrase:        "test junk",
+				Count:         2,
+				RevealPrivate: true,
+			},
+			expectedResponse: &Response{
+				StatusCode: 200,
+				Body: ResponseBody{
+					Wallet: WalletBody{
+						Derivation: DefaultDerivation,
+						Length:     DefaultPhraseLength,
+						Mnemonic:   "test test test test test test test test test test test junk",
+					},
+					Accounts: []AccountBody{
+						{
+							Address:    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+							PrivateKey: "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+						},
+						{
+							Address:    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+							PrivateKey: "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for name, test := range tests {
@@ -339,7 +394,7 @@ func TestInvalidInputsErrors(t *testing.T) {
 }
 
 func TestNewMnemonicGeneratedAtRandom(t *testing.T) {
-	resp, err := Main(Request{Count: 3, Derivation: DefaultDerivation, Length: DefaultPhraseLength})
+	resp, err := Main(Request{Count: 3, Derivation: DefaultDerivation, Length: DefaultPhraseLength, RevealPrivate: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -347,6 +402,6 @@ func TestNewMnemonicGeneratedAtRandom(t *testing.T) {
 	assert.Equal(t, 3, len(resp.Body.Accounts))
 	for _, addr := range resp.Body.Accounts {
 		assert.Equal(t, 42, len(addr.Address))
-		fmt.Println("-", addr.Address)
+		fmt.Println("-", addr.Address, addr.PrivateKey)
 	}
 }

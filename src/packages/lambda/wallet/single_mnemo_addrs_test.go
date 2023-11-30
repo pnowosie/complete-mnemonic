@@ -44,7 +44,7 @@ func closeTestParams(testCase int) func(t *testing.T) {
 		}
 
 		for i, line := range strings.Split(string(fbytes), "\n") {
-			if PreRun && i >= 5 {
+			if PreRun && i >= 5 { //nolint:all // TODO: suppress linter warning
 				break
 			}
 
@@ -57,11 +57,16 @@ func closeTestParams(testCase int) func(t *testing.T) {
 			}
 			assert.True(t, bip39.IsMnemonicValid(mnemonic), "mnemonic is not valid", "mnemonic", mnemonic)
 
-			addrs, err := generateAddresses(mnemonic, DefaultDerivation, AddressCount)
-			fmt.Printf("%-20s %s\n", line, addrs[0])
+			defaultPwd := ""
+			accs, err := generateAddresses(mnemonic, defaultPwd, DefaultDerivation, AddressCount, false)
+			fmt.Printf("%-20s %s\n", line, accs[0])
 
 			outfile := outdir + strings.ReplaceAll(line, " ", "-") + ".txt"
-			os.WriteFile(outfile, []byte(strings.Join(addrs, "\n")+"\n"), 0644)
+			content := []byte{}
+			for _, a := range accs {
+				content = append(content, []byte(a.Address+"\n")...)
+			}
+			_ = os.WriteFile(outfile, content, 0644)
 		}
 	}
 }
