@@ -1,8 +1,10 @@
 package main
 
 import (
+	"github.com/pnowosie/complete-mnemonic/bip39"
 	"github.com/stretchr/testify/assert"
 	"math"
+	"strings"
 	"testing"
 )
 
@@ -259,5 +261,45 @@ func TestEntropyInformations(t *testing.T) {
 			assert.Equal(t, span01, span7f)
 		})
 	}
+}
 
+func TestLastWordsForLongerPhrases(t *testing.T) {
+	tests := map[string]struct {
+		phrase string
+		length int
+	}{
+		"test-12": {
+			phrase: "test",
+			length: 12,
+		},
+		"test-15": {
+			phrase: "test",
+			length: 15,
+		},
+		"test-18": {
+			phrase: "test",
+			length: 18,
+		},
+		"test-21": {
+			phrase: "test",
+			length: 21,
+		},
+		"test-24": {
+			phrase: "test",
+			length: 24,
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			req := Request{Phrase: test.phrase, Length: test.length}
+			res, err := Main(req)
+			assert.NoError(t, err)
+
+			mnemonicWithoutEnd := strings.Join(strings.Fields(res.Body.Mnemonic)[:test.length-1], " ")
+			for _, end := range strings.Fields(res.Body.Ends) {
+				mnemonic := mnemonicWithoutEnd + " " + end
+				assert.True(t, bip39.IsMnemonicValid(mnemonic), "mnemonic is not valid", mnemonic)
+			}
+		})
+	}
 }
