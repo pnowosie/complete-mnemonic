@@ -31,7 +31,7 @@ func Repeat(phrase string, length int) (string, error) {
 	return strings.Join(dst, " "), nil
 }
 
-func PossibleLastBytes(entropyByteLength int) []byte {
+func PossibleLastBytes(entropyByteLength int, lastByte byte) []byte {
 	const (
 		wordEntropyBitLength = 11
 	)
@@ -41,6 +41,7 @@ func PossibleLastBytes(entropyByteLength int) []byte {
 		checksumBitLength          = entropyBitLength / 32
 		lastWordOfEntropyBitLength = wordEntropyBitLength - checksumBitLength
 		numberOfCorrectLastWords   = int(math.Pow(2, float64(lastWordOfEntropyBitLength)))
+		maskPreservingBytes        = byte(0xff << lastWordOfEntropyBitLength)
 	)
 
 	// lets generate some of the correct last bytes
@@ -48,7 +49,8 @@ func PossibleLastBytes(entropyByteLength int) []byte {
 	if numberOfCorrectLastWords < MaxCorrectWords {
 		actualWords = numberOfCorrectLastWords
 	}
-	correctBytes := make([]uint8, 1, actualWords)
+	remOfLastByte := lastByte & maskPreservingBytes
+	correctBytes := []uint8{remOfLastByte}
 
 	increment := uint8(numberOfCorrectLastWords / MaxCorrectWords)
 	next := increment - 1
@@ -56,7 +58,7 @@ func PossibleLastBytes(entropyByteLength int) []byte {
 		increment, next = 1, 1
 	}
 	for i := 1; i < actualWords; i++ {
-		correctBytes = append(correctBytes, next)
+		correctBytes = append(correctBytes, remOfLastByte|next)
 		next += increment
 		if increment > 1 && i == actualWords/2-1 {
 			next += increment

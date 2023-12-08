@@ -25,13 +25,13 @@ This little fun function helps you to create valid BIP-39 menemonic phrases that
 
 ## Phrase length to entropy table
 
-| words length | entropy bits | checksum bits |
-|-------------:|-------------:|--------------:|
-|           12 |          128 |             4 |
-|           15 |          160 |             5 |
-|           18 |          192 |             6 |
-|           21 |          224 |             7 |
-|           24 |          256 |             8 |
+| words length | entropy bits | checksum bits | entropy bits of last word |
+|-------------:|-------------:|--------------:|--------------------------:|
+|           12 |          128 |             4 |                         7 | 
+|           15 |          160 |             5 |                         6 |
+|           18 |          192 |             6 |                         5 |
+|           21 |          224 |             7 |                         4 |
+|           24 |          256 |             8 |                         3 |
 
 In general each word encodes 11-bits of information, where the last word contains 4-8 bits of checksum.
 When you choose 3-words phrase, you actually have 33-bits of entropy, no more.

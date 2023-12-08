@@ -31,12 +31,14 @@ func Main(in Request) (*Response, error) {
 }
 
 func possibleLastWords(entropy []byte) []string {
-	words := make([]string, 0, MaxCorrectWords)
-	bytes := PossibleLastBytes(len(entropy))
-	mnWordsLength := len(entropy) / 4 * 3
+	var (
+		words         = make([]string, 0, MaxCorrectWords)
+		entrophyLen   = len(entropy)
+		mnWordsLength = entrophyLen / 4 * 3
+	)
 
-	for _, last := range bytes {
-		entropy[len(entropy)-1] = last
+	for _, last := range PossibleLastBytes(entrophyLen, entropy[entrophyLen-1]) {
+		entropy[entrophyLen-1] = last
 		mnemonic, err := bip39.NewMnemonic(entropy)
 		if err != nil {
 			return []string{}

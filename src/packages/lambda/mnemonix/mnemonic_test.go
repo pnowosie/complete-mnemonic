@@ -1,11 +1,13 @@
 package main
 
 import (
-	"github.com/pnowosie/complete-mnemonic/bip39"
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"math"
 	"strings"
 	"testing"
+
+	"github.com/pnowosie/complete-mnemonic/bip39"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPhraseRepetitionCompletion(t *testing.T) {
@@ -50,7 +52,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry advance",
-					Ends:     "brisk castle faint guilt life pluck task update",
+					Ends:     "advance december forget hedgehog manage quote supreme verb",
 					Length:   24,
 				},
 			},
@@ -64,7 +66,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "angry bird angry bird angry bird angry bird angry bird angry birth",
-					Ends:     "absent audit burden company distance exist garbage husband modify panel quiz safe sort tattoo urban wrist",
+					Ends:     "acid autumn burst confirm divert example game humble mom pact quality say soup tell unusual wrestle",
 					Length:   12,
 				},
 			},
@@ -103,7 +105,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age act fox air airport",
-					Ends:     "acid auto bundle concert discover era garage hover mobile owner quality rural snap tattoo urge wrist",
+					Ends:     "ability auction bring club dish equal frog hood mobile ostrich pull salmon sorry tackle upper yard",
 					Length:   15,
 				},
 			},
@@ -116,7 +118,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age act blue fox blue fox green window",
-					Ends:     "among asset brand club deliver equal flight habit mixture panther praise roof sorry team tuna winner",
+					Ends:     "alert arrow blur cloud derive exist fly hill mask opera proof salute snow super twice window",
 					Length:   18,
 				},
 			},
@@ -248,7 +250,7 @@ func TestEntropyInformations(t *testing.T) {
 			assert.Equal(t, test.numberOfCorrectLastWords, numberOfCorrectLastWords)
 
 			// lets generate some of the correct last bytes
-			correctBytes := PossibleLastBytes(entropyByteLength)
+			correctBytes := PossibleLastBytes(entropyByteLength, 0x0)
 			assert.Equal(t, test.someOfCorrectLastBytes, correctBytes)
 
 			end := uint8(test.numberOfCorrectLastWords - 1)
@@ -299,6 +301,195 @@ func TestLastWordsForLongerPhrases(t *testing.T) {
 			for _, end := range strings.Fields(res.Body.Ends) {
 				mnemonic := mnemonicWithoutEnd + " " + end
 				assert.True(t, bip39.IsMnemonicValid(mnemonic), "mnemonic is not valid", mnemonic)
+			}
+		})
+	}
+}
+
+func TestEntropyDoesNotContainChecksum(t *testing.T) {
+	tests := map[string]struct {
+		phraseLength          int
+		obtainedEntropyLength int
+	}{
+		"test-12": {
+			phraseLength:          12,
+			obtainedEntropyLength: 16,
+		},
+		"test-15": {
+			phraseLength:          15,
+			obtainedEntropyLength: 20,
+		},
+		"test-18": {
+			phraseLength:          18,
+			obtainedEntropyLength: 24,
+		},
+		"test-21": {
+			phraseLength:          21,
+			obtainedEntropyLength: 28,
+		},
+		"test-24": {
+			phraseLength:          24,
+			obtainedEntropyLength: 32,
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			bitSize := test.phraseLength*11 - test.phraseLength/3
+			entropy, err := bip39.NewEntropy(bitSize)
+			assert.NoError(t, err)
+			assert.Equal(t, test.obtainedEntropyLength, len(entropy))
+
+			mn, err := bip39.NewMnemonic(entropy)
+			assert.NoError(t, err)
+			bytes, _ := bip39.MnemonicToByteArray(mn, false)
+
+			// only then we can have access to checksum byte
+			assert.Equal(t, test.obtainedEntropyLength+1, len(bytes))
+		})
+	}
+}
+
+// Observation: last byte of entropy is not used for checksum
+// to get the checksum you need MnemonicToByteArray method
+// checksum is a few first bits from the first byte of the hash of the entropy
+func TestHowChecksumBitsArePlacedInBytesArr(t *testing.T) {
+	tests := map[string]struct {
+		phraseLength int
+		wordIndex    int
+		firstByte    byte
+		butLastByte  byte
+		lastByte     byte
+	}{
+		"test-A-12": {
+			phraseLength: 12,
+			wordIndex:    0,
+			firstByte:    0x0,
+			butLastByte:  0x0,
+			lastByte:     0x3,
+		},
+		"test-Z-12": {
+			phraseLength: 12,
+			wordIndex:    2047,
+			firstByte:    0x0f,
+			butLastByte:  0xff,
+			lastByte:     0xf5,
+		},
+		"test-A-15": {
+			phraseLength: 15,
+			wordIndex:    0,
+			firstByte:    0x0,
+			butLastByte:  0x0,
+			lastByte:     0x1b,
+		},
+		"test-Z-15": {
+			phraseLength: 15,
+			wordIndex:    2047,
+			firstByte:    0x1f,
+			butLastByte:  0xff,
+			lastByte:     0xf3,
+		},
+		"test-A-18": {
+			phraseLength: 18,
+			wordIndex:    0,
+			firstByte:    0x0,
+			butLastByte:  0x0,
+			lastByte:     0x27,
+		},
+		"test-Z-18": {
+			phraseLength: 18,
+			wordIndex:    2047,
+			firstByte:    0x3f,
+			butLastByte:  0xff,
+			lastByte:     0xd1,
+		},
+		"test-A-21": {
+			phraseLength: 21,
+			wordIndex:    0,
+			firstByte:    0x0,
+			butLastByte:  0x0,
+			lastByte:     0x1d,
+		},
+		"test-Z-21": {
+			phraseLength: 21,
+			wordIndex:    2047,
+			firstByte:    0x7f,
+			butLastByte:  0xff,
+			lastByte:     0x99,
+		},
+		"test-A-24": {
+			phraseLength: 24,
+			wordIndex:    0,
+			firstByte:    0x0,
+			butLastByte:  0x0,
+			lastByte:     0x66,
+		},
+		"test-Z-24": {
+			phraseLength: 24,
+			wordIndex:    2047,
+			firstByte:    0xff,
+			butLastByte:  0xff,
+			lastByte:     0xaf,
+		},
+	}
+	for name, test := range tests {
+		words := bip39.GetWordList()
+		t.Run(name, func(t *testing.T) {
+			res, _ := Main(Request{Phrase: words[test.wordIndex], Length: test.phraseLength})
+			phrase := res.Body.Mnemonic
+			bytes, _ := bip39.MnemonicToByteArray(phrase, false)
+			//fmt.Println(phrase)
+			//fmt.Printf("%d: %x\n", test.phraseLength, bytes)
+			//entropy, _ := bip39.EntropyFromMnemonic(phrase)
+			//fmt.Printf("%d: %x\n", test.phraseLength, entropy)
+			assert.Equal(t, test.firstByte, bytes[0])
+			assert.Equal(t, test.butLastByte, bytes[len(bytes)-2])
+			assert.Equal(t, test.lastByte, bytes[len(bytes)-1])
+		})
+	}
+}
+
+func TestPossibleLastBytesPreservesMask(t *testing.T) {
+	tests := map[string]struct {
+		entropyLength int
+		lastByte      byte
+		freeBits      int
+	}{
+		"test-12": {
+			entropyLength: 16,
+			lastByte:      0b10000000,
+			freeBits:      7,
+		},
+		"test-15": {
+			entropyLength: 20,
+			lastByte:      0b01000000,
+			freeBits:      6,
+		},
+		"test-18": {
+			entropyLength: 24,
+			lastByte:      0b10100000,
+			freeBits:      5,
+		},
+		"test-21": {
+			entropyLength: 28,
+			lastByte:      0b10010000,
+			freeBits:      4,
+		},
+		"test-24": {
+			entropyLength: 32,
+			lastByte:      0b10001000,
+			freeBits:      3,
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			bytes := PossibleLastBytes(test.entropyLength, test.lastByte)
+			lastByte := fmt.Sprintf("%08b", test.lastByte)
+			preserve := lastByte[:8-test.freeBits]
+			fmt.Printf("%d free %d %08b\n", test.entropyLength, test.freeBits, test.lastByte)
+			for _, b := range bytes {
+				bib := fmt.Sprintf("%08b", b)
+				//fmt.Println(" -", bib)
+				assert.True(t, strings.HasPrefix(bib, preserve), "lastByte not preserved", lastByte, bib)
 			}
 		})
 	}
