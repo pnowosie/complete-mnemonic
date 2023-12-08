@@ -139,7 +139,9 @@ func generateAddresses(mnemonic, password, derivation string, count int, include
 		}
 		accs[i].Address = account.Address.Hex()
 		if includePrivate {
+			pub, _ := wallet.PublicKeyHex(account)
 			priv, _ := wallet.PrivateKeyHex(account)
+			accs[i].PublicKey = pub
 			accs[i].PrivateKey = priv
 		}
 	}

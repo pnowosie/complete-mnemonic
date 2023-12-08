@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/ethereum/go-ethereum v1.10.17
-	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
+	github.com/miguelmota/go-ethereum-hdwallet v0.1.2
 	github.com/stretchr/testify v1.8.4
 	github.com/tyler-smith/go-bip39 v1.1.0
 )
@@ -21,5 +21,3 @@ require (
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/miguelmota/go-ethereum-hdwallet => github.com/pnowosie/go-ethereum-hdwallet v0.0.0-20231114151632-c79963b23f11
