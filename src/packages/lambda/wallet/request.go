@@ -14,7 +14,7 @@ type Request struct {
 	Phrase        string `json:"phrase,omitempty"`
 	Derivation    string `json:"derivation,omitempty"`
 	Password      string `json:"password,omitempty"`
-	RevealPrivate bool   `json:"reveal,omitempty"`
+	RevealPrivate bool   `json:"reveal,string,omitempty"`
 }
 
 // Response is the function's response struct
