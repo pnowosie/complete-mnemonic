@@ -8,8 +8,6 @@ import (
 	"github.com/pnowosie/complete-mnemonic/bip39"
 )
 
-const MaxCorrectWords = 16
-
 func Repeat(phrase string, length int) (string, error) {
 	if err := hasCorrectWordsLength(length); err != nil {
 		return "", err
@@ -31,7 +29,7 @@ func Repeat(phrase string, length int) (string, error) {
 	return strings.Join(dst, " "), nil
 }
 
-func PossibleLastBytes(entropyByteLength int, lastByte byte) []byte {
+func PossibleLastBytes(entropyByteLength int, lastByte byte, length int) []byte {
 	const (
 		wordEntropyBitLength = 11
 	)
@@ -40,27 +38,23 @@ func PossibleLastBytes(entropyByteLength int, lastByte byte) []byte {
 		entropyBitLength           = entropyByteLength * 8
 		checksumBitLength          = entropyBitLength / 32
 		lastWordOfEntropyBitLength = wordEntropyBitLength - checksumBitLength
-		numberOfCorrectLastWords   = int(math.Pow(2, float64(lastWordOfEntropyBitLength)))
+		numberOfCorrectLastWords   = 1 << lastWordOfEntropyBitLength
 		maskPreservingBytes        = byte(0xff << lastWordOfEntropyBitLength)
+		actualWords                = int(math.Min(float64(numberOfCorrectLastWords), float64(length)))
+		increment                  = uint8(numberOfCorrectLastWords / actualWords)
+		remOfLastByte              = lastByte & maskPreservingBytes
 	)
 
-	// lets generate some of the correct last bytes
-	actualWords := MaxCorrectWords
-	if numberOfCorrectLastWords < MaxCorrectWords {
-		actualWords = numberOfCorrectLastWords
-	}
-	remOfLastByte := lastByte & maskPreservingBytes
+	wordsLen := int(actualWords)
 	correctBytes := []uint8{remOfLastByte}
-
-	increment := uint8(numberOfCorrectLastWords / MaxCorrectWords)
 	next := increment - 1
 	if increment <= 1 {
 		increment, next = 1, 1
 	}
-	for i := 1; i < actualWords; i++ {
+	for i := 1; i < wordsLen; i++ {
 		correctBytes = append(correctBytes, remOfLastByte|next)
 		next += increment
-		if increment > 1 && i == actualWords/2-1 {
+		if increment > 1 && i == wordsLen/2-1 {
 			next += increment
 		}
 	}

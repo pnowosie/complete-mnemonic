@@ -20,7 +20,7 @@ func Main(in Request) (*Response, error) {
 
 	en, _ := bip39.EntropyFromMnemonic(mn)
 	mn, _ = bip39.NewMnemonic(en)
-	ends := possibleLastWords(en)
+	ends := possibleLastWords(en, in.EndWords)
 
 	words := strings.Fields(mn)
 	return &Response{
@@ -30,14 +30,14 @@ func Main(in Request) (*Response, error) {
 	}, nil
 }
 
-func possibleLastWords(entropy []byte) []string {
+func possibleLastWords(entropy []byte, length int) []string {
 	var (
-		words         = make([]string, 0, MaxCorrectWords)
+		words         = make([]string, 0, length)
 		entrophyLen   = len(entropy)
 		mnWordsLength = entrophyLen / 4 * 3
 	)
 
-	for _, last := range PossibleLastBytes(entrophyLen, entropy[entrophyLen-1]) {
+	for _, last := range PossibleLastBytes(entrophyLen, entropy[entrophyLen-1], length) {
 		entropy[entrophyLen-1] = last
 		mnemonic, err := bip39.NewMnemonic(entropy)
 		if err != nil {

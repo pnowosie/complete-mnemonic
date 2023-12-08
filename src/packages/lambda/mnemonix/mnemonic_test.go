@@ -23,7 +23,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
-					Ends:     "about attract burger cool disagree exhaust furnace huge moment own question sand solid tent urge wrap",
+					Ends:     "about burger disagree furnace own sand tent wrap",
 					Length:   12,
 				},
 			},
@@ -38,7 +38,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 
 				Body: ResponseBody{
 					Mnemonic: "yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow year",
-					Ends:     "account autumn buffalo clown dirt excite found hurdle minimum ordinary protect rubber snow switch urge year",
+					Ends:     "account buffalo dirt found ordinary rubber switch year",
 					Length:   15,
 				},
 			},
@@ -66,7 +66,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "angry bird angry bird angry bird angry bird angry bird angry birth",
-					Ends:     "acid autumn burst confirm divert example game humble mom pact quality say soup tell unusual wrestle",
+					Ends:     "acid burst divert game pact say tell wrestle",
 					Length:   12,
 				},
 			},
@@ -79,7 +79,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age addict",
-					Ends:     "ability asthma burden convince dinosaur evoke game humor mixed paper quiz save soon thank unlock wrong",
+					Ends:     "ability burden dinosaur game paper save thank wrong",
 					Length:   12,
 				},
 			},
@@ -92,7 +92,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon wrap",
-					Ends:     "about attract burger cool disagree exhaust furnace huge moment own question sand solid tent urge wrap",
+					Ends:     "about burger disagree furnace own sand tent wrap",
 					Length:   12,
 				},
 			},
@@ -105,7 +105,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age act fox air airport",
-					Ends:     "ability auction bring club dish equal frog hood mobile ostrich pull salmon sorry tackle upper yard",
+					Ends:     "ability bring dish frog ostrich salmon tackle yard",
 					Length:   15,
 				},
 			},
@@ -118,7 +118,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age act blue fox blue fox green window",
-					Ends:     "alert arrow blur cloud derive exist fly hill mask opera proof salute snow super twice window",
+					Ends:     "alert blur derive fly opera salute super window",
 					Length:   18,
 				},
 			},
@@ -131,7 +131,7 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "quick brown fox quick brown fox quick brown fox quick brown fox",
-					Ends:     "accuse attack cable confirm discover excess funny hurry moment oyster question safe solution tent urge wreck",
+					Ends:     "accuse cable discover funny oyster safe tent wreck",
 					Length:   12,
 				},
 			},
@@ -250,7 +250,7 @@ func TestEntropyInformations(t *testing.T) {
 			assert.Equal(t, test.numberOfCorrectLastWords, numberOfCorrectLastWords)
 
 			// lets generate some of the correct last bytes
-			correctBytes := PossibleLastBytes(entropyByteLength, 0x0)
+			correctBytes := PossibleLastBytes(entropyByteLength, 0x0, 16)
 			assert.Equal(t, test.someOfCorrectLastBytes, correctBytes)
 
 			end := uint8(test.numberOfCorrectLastWords - 1)
@@ -267,37 +267,47 @@ func TestEntropyInformations(t *testing.T) {
 
 func TestLastWordsForLongerPhrases(t *testing.T) {
 	tests := map[string]struct {
-		phrase string
-		length int
+		phrase   string
+		length   int
+		endWords int
 	}{
 		"test-12": {
-			phrase: "test",
-			length: 12,
+			phrase:   "test",
+			length:   12,
+			endWords: 128,
 		},
 		"test-15": {
-			phrase: "test",
-			length: 15,
+			phrase:   "test",
+			length:   15,
+			endWords: 64,
 		},
 		"test-18": {
-			phrase: "test",
-			length: 18,
+			phrase:   "test",
+			length:   18,
+			endWords: 32,
 		},
 		"test-21": {
-			phrase: "test",
-			length: 21,
+			phrase:   "test",
+			length:   21,
+			endWords: 16,
 		},
 		"test-24": {
-			phrase: "test",
-			length: 24,
+			phrase:   "test",
+			length:   24,
+			endWords: 8,
 		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			req := Request{Phrase: test.phrase, Length: test.length}
+			req := Request{
+				Phrase:   test.phrase,
+				Length:   test.length,
+				EndWords: test.endWords}
 			res, err := Main(req)
 			assert.NoError(t, err)
 
 			mnemonicWithoutEnd := strings.Join(strings.Fields(res.Body.Mnemonic)[:test.length-1], " ")
+			//fmt.Println(req.Phrase, ":", res.Body.Ends)
 			for _, end := range strings.Fields(res.Body.Ends) {
 				mnemonic := mnemonicWithoutEnd + " " + end
 				assert.True(t, bip39.IsMnemonicValid(mnemonic), "mnemonic is not valid", mnemonic)
@@ -482,10 +492,11 @@ func TestPossibleLastBytesPreservesMask(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			bytes := PossibleLastBytes(test.entropyLength, test.lastByte)
+			possibleChecksums := 1 << test.freeBits
+			bytes := PossibleLastBytes(test.entropyLength, test.lastByte, possibleChecksums)
 			lastByte := fmt.Sprintf("%08b", test.lastByte)
 			preserve := lastByte[:8-test.freeBits]
-			fmt.Printf("%d free %d %08b\n", test.entropyLength, test.freeBits, test.lastByte)
+			fmt.Printf("%d: free %d bits (%d) %08b\n", test.entropyLength, test.freeBits, 1<<test.freeBits, test.lastByte)
 			for _, b := range bytes {
 				bib := fmt.Sprintf("%08b", b)
 				//fmt.Println(" -", bib)

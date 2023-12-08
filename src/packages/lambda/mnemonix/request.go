@@ -1,13 +1,15 @@
 package main
 
 const (
-	DefaultPhraseLength = 12
+	DefaultPhraseLength    = 12
+	DefaultMaxCorrectWords = 8
 )
 
 // Request is the function's request struct
 type Request struct {
-	Phrase string `json:"phrase"`
-	Length int    `json:"length,string,omitempty"`
+	Phrase   string `json:"phrase"`
+	Length   int    `json:"length,string,omitempty"`
+	EndWords int    `json:"endWords,string,omitempty"`
 }
 
 // Response is the function's response struct
@@ -27,5 +29,8 @@ type ResponseBody struct {
 func (req *Request) AssumeDefaults() {
 	if req.Length == 0 {
 		req.Length = DefaultPhraseLength
+	}
+	if req.EndWords == 0 {
+		req.EndWords = DefaultMaxCorrectWords
 	}
 }
