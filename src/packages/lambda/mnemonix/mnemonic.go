@@ -47,5 +47,6 @@ func possibleLastWords(entropy []byte, length int) []string {
 		mnWords := strings.Fields(mnemonic)
 		words = append(words, mnWords[mnWordsLength-1])
 	}
+
 	return words
 }

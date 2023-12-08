@@ -34,6 +34,10 @@ func PossibleLastBytes(entropyByteLength int, lastByte byte, length int) []byte 
 		wordEntropyBitLength = 11
 	)
 
+	if length == 0 {
+		return []byte{}
+	}
+
 	var (
 		entropyBitLength           = entropyByteLength * 8
 		checksumBitLength          = entropyBitLength / 32

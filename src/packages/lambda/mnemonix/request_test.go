@@ -17,18 +17,16 @@ func TestRequestUnMarshall(t *testing.T) {
 			json:    `{"phrase": "abandon"}`,
 			success: true,
 			expectedRequest: &Request{
-				Phrase:   "abandon",
-				Length:   12,
-				EndWords: 8,
+				Phrase: "abandon",
+				Length: 12,
 			},
 		},
 		"word with a length": {
 			json:    `{"length": "15", "phrase": "yellow"}`,
 			success: true,
 			expectedRequest: &Request{
-				Phrase:   "yellow",
-				Length:   15,
-				EndWords: 8,
+				Phrase: "yellow",
+				Length: 15,
 			},
 		},
 	}

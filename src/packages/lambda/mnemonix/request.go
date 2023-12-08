@@ -2,7 +2,7 @@ package main
 
 const (
 	DefaultPhraseLength    = 12
-	DefaultMaxCorrectWords = 8
+	DefaultMaxCorrectWords = 0
 )
 
 // Request is the function's request struct

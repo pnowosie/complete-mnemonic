@@ -23,7 +23,6 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
-					Ends:     "about burger disagree furnace own sand tent wrap",
 					Length:   12,
 				},
 			},
@@ -38,7 +37,6 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 
 				Body: ResponseBody{
 					Mnemonic: "yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow yellow year",
-					Ends:     "account buffalo dirt found ordinary rubber switch year",
 					Length:   15,
 				},
 			},
@@ -52,7 +50,6 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry bird angry advance",
-					Ends:     "advance december forget hedgehog manage quote supreme verb",
 					Length:   24,
 				},
 			},
@@ -66,7 +63,6 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "angry bird angry bird angry bird angry bird angry bird angry birth",
-					Ends:     "acid burst divert game pact say tell wrestle",
 					Length:   12,
 				},
 			},
@@ -79,7 +75,6 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age addict",
-					Ends:     "ability burden dinosaur game paper save thank wrong",
 					Length:   12,
 				},
 			},
@@ -92,7 +87,6 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon wrap",
-					Ends:     "about burger disagree furnace own sand tent wrap",
 					Length:   12,
 				},
 			},
@@ -105,7 +99,6 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age act fox air airport",
-					Ends:     "ability bring dish frog ostrich salmon tackle yard",
 					Length:   15,
 				},
 			},
@@ -118,7 +111,6 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "air age act air age act air age act air age act blue fox blue fox green window",
-					Ends:     "alert blur derive fly opera salute super window",
 					Length:   18,
 				},
 			},
@@ -131,7 +123,6 @@ func TestPhraseRepetitionCompletion(t *testing.T) {
 				StatusCode: 200,
 				Body: ResponseBody{
 					Mnemonic: "quick brown fox quick brown fox quick brown fox quick brown fox",
-					Ends:     "accuse cable discover funny oyster safe tent wreck",
 					Length:   12,
 				},
 			},
@@ -502,6 +493,43 @@ func TestPossibleLastBytesPreservesMask(t *testing.T) {
 				//fmt.Println(" -", bib)
 				assert.True(t, strings.HasPrefix(bib, preserve), "lastByte not preserved", lastByte, bib)
 			}
+		})
+	}
+}
+
+func TestCanSpecifyExactlyEndWords(t *testing.T) {
+	tests := map[string]struct {
+		length           int
+		endWords         int
+		expectedReturned int
+	}{
+		"can supress end words": {
+			length:           12,
+			endWords:         0,
+			expectedReturned: 0,
+		},
+		"can specify end words": {
+			length:           15,
+			endWords:         3,
+			expectedReturned: 3,
+		},
+		"can specify more possible": {
+			length:           18,
+			endWords:         100,
+			expectedReturned: 32,
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			req := Request{
+				Phrase:   "zoo",
+				Length:   test.length,
+				EndWords: test.endWords,
+			}
+			res, err := Main(req)
+			assert.NoError(t, err)
+			assert.Empty(t, res.Body.Error)
+			assert.Equal(t, test.expectedReturned, len(strings.Fields(res.Body.Ends)))
 		})
 	}
 }
